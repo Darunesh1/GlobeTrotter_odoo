@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
 from app.database import Base
@@ -35,3 +35,5 @@ class Stop(Base):
     activities = relationship(
         "StopActivity", back_populates="stop", cascade="all, delete-orphan"
     )
+    # In Stop class, add this column:
+    transport_cost = Column(Float, default=0.0)
