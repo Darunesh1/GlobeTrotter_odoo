@@ -1,7 +1,13 @@
 from datetime import datetime
+from enum import Enum
 from typing import Optional
 
 from pydantic import BaseModel, EmailStr
+
+
+class UserRole(str, Enum):
+    USER = "user"
+    ADMIN = "admin"
 
 
 # Base schema with common attributes
@@ -33,11 +39,13 @@ class UserUpdate(BaseModel):
 class UserResponse(UserBase):
     id: int
     profile_picture: Optional[str] = None
+    is_verified: bool
+    role: str
     created_at: datetime
     updated_at: datetime
 
     class Config:
-        from_attributes = True  # Allows SQLAlchemy model to Pydantic conversion
+        from_attributes = True
 
 
 # New schemas for verification
