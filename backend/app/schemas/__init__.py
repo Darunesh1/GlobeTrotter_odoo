@@ -1,3 +1,12 @@
+# NEW: Import Activity Schemas
+from app.schemas.activity import (
+    ActivityBase,
+    ActivityCreate,
+    ActivityResponse,
+    ActivityUpdate,
+    StopActivityAdd,
+    StopActivityResponse,
+)
 from app.schemas.city import (
     CityBase,
     CityCreate,
@@ -49,4 +58,10 @@ __all__ = [
     "StopUpdate",
     "StopResponse",
     "StopWithCityResponse",
+    "ActivityBase",
+    "ActivityCreate",
+    "ActivityResponse",
+    "ActivityUpdate",
+    "StopActivityAdd",
+    "StopActivityResponse",
 ]
