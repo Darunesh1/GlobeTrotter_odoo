@@ -1,10 +1,10 @@
-from fastapi import APIRouter, Depends, status, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from app.api.deps import get_current_active_user
 from app.database import get_db
 from app.models.user import User
 from app.schemas.user import UserResponse, UserUpdate
-from app.api.deps import get_current_active_user
 
 router = APIRouter()
 
@@ -22,7 +22,7 @@ def get_user_profile(
 
 @router.put(
     "/profile",
-    response_model=UserRespo˝nse,
+    response_model=UserResponse,  # FIX: Typo '˝' removed here
     status_code=status.HTTP_200_OK,
 )
 def update_user_profile(
@@ -54,4 +54,3 @@ def delete_user_profile(
     db.commit()
 
     return None
-
