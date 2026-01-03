@@ -1,15 +1,12 @@
 import pytest
 from fastapi import status
 
+# FIX: paths to match app.include_router(users.router, prefix="/users")
+
 
 def test_get_user_profile(client, auth_headers, test_user):
     """Test retrieving the current user's profile"""
-    # Note: Depending on your main.py router prefix, this might be /users/profile or /api/v1/users/profile
-    # Based on standard naming, we assume the router is mounted at /users
     response = client.get("/users/profile", headers=auth_headers)
-
-    # If this fails with 404, check main.py prefixes.
-    # It might be /api/v1/users/profile or just /users/profile
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
     assert data["email"] == test_user["user"]["email"]
@@ -40,5 +37,4 @@ def test_delete_user_profile(client, auth_headers):
 
     # 2. Try to access profile again (should fail because user is deleted)
     response_check = client.get("/users/profile", headers=auth_headers)
-    # The token is valid signature-wise, but the user ID won't exist in DB
     assert response_check.status_code == status.HTTP_401_UNAUTHORIZED
