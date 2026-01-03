@@ -83,3 +83,44 @@ def add_activity_to_stop(
     db.add(stop_activity)
     db.commit()
     return {"message": "Activity added"}
+
+
+# In app/api/v1/activities.py
+
+
+@router.delete("/stop/{stop_id}/{activity_id}", status_code=status.HTTP_204_NO_CONTENT)
+def remove_activity_from_stop(
+    stop_id: int,
+    activity_id: int,
+    current_user=Depends(get_current_active_user),
+    db: Session = Depends(get_db),
+):
+    """Remove an activity from a specific stop"""
+    # 1. Check if the stop belongs to the user
+    stop = db.query(Stop).filter(Stop.id == stop_id).first()
+    if not stop:
+        raise HTTPException(status_code=404, detail="Stop not found")
+
+    trip = (
+        db.query(Trip)
+        .filter(Trip.id == stop.trip_id, Trip.user_id == current_user.id)
+        .first()
+    )
+    if not trip:
+        raise HTTPException(status_code=403, detail="Not authorized")
+
+    # 2. Find the link
+    stop_activity = (
+        db.query(StopActivity)
+        .filter(
+            StopActivity.stop_id == stop_id, StopActivity.activity_id == activity_id
+        )
+        .first()
+    )
+
+    if not stop_activity:
+        raise HTTPException(status_code=404, detail="Activity not found in this stop")
+
+    db.delete(stop_activity)
+    db.commit()
+    return None
