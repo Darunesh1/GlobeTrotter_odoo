@@ -15,16 +15,14 @@ class Trip(Base):
     start_date = Column(DateTime, nullable=False)
     end_date = Column(DateTime, nullable=False)
     cover_photo = Column(String, nullable=True)
-    is_public = Column(Integer, default=0)  # 0=private, 1=public
+    is_public = Column(Integer, default=0)
     share_token = Column(String, unique=True, nullable=True)
 
-    # Foreign key
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
-    # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationships
     owner = relationship("User", back_populates="trips")
-    stops = relationship("Stop", back_populates="trip", cascade="all, delete-orphan")
+    # stops relationship will be added later when Stop model is created
