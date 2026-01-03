@@ -1,4 +1,6 @@
 from app.schemas.user import (
+    EmailVerification,
+    ResendVerification,
     Token,
     TokenData,
     UserBase,
@@ -16,4 +18,6 @@ __all__ = [
     "UserResponse",
     "Token",
     "TokenData",
+    "EmailVerification",
+    "ResendVerification",
 ]
