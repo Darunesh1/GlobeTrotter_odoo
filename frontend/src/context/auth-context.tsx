@@ -4,11 +4,17 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import api from "@/lib/api";
 
-interface User {
-  id: string;
+// Updated User interface matching backend UserResponse
+export interface User {
+  id: number;
   email: string;
-  name: string;
-  avatar?: string;
+  username: string;
+  full_name?: string;
+  profile_picture?: string;
+  is_verified: boolean;
+  role: string;
+  created_at: string;
+  updated_at: string;
 }
 
 interface AuthContextType {
@@ -16,7 +22,8 @@ interface AuthContextType {
   isLoading: boolean;
   login: (token: string) => Promise<void>;
   logout: () => void;
-  refreshUser: () => Promise<void>;
+  me: () => Promise<void>;
+  updateProfile: (data: Partial<User>) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -26,7 +33,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
-  const refreshUser = async () => {
+  const me = async () => {
     try {
       const { data } = await api.get("/auth/me");
       setUser(data);
@@ -38,10 +45,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const updateProfile = async (data: Partial<User>) => {
+    try {
+      const { data: updatedUser } = await api.put("/users/profile", data);
+      setUser(updatedUser);
+    } catch (error) {
+      console.error("Failed to update profile", error);
+      throw error;
+    }
+  };
+
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
-      refreshUser();
+      me();
     } else {
       setIsLoading(false);
     }
@@ -49,7 +66,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (token: string) => {
     localStorage.setItem("token", token);
-    await refreshUser();
+    await me();
     router.push("/dashboard");
   };
 
@@ -61,7 +78,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, isLoading, login, logout, refreshUser }}
+      value={{ user, isLoading, login, logout, me, updateProfile }}
     >
       {children}
     </AuthContext.Provider>
