@@ -26,6 +26,7 @@ class StopUpdate(BaseModel):
     end_date: Optional[datetime] = None
     notes: Optional[str] = None
     order: Optional[int] = None
+    transport_cost: Optional[float] = None
 
 
 class StopResponse(StopBase):
