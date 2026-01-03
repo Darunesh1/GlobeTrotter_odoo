@@ -18,3 +18,6 @@ class User(Base):
     verification_token = Column(String, nullable=True)  # NEW
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relationships
+    trips = relationship("Trip", back_populates="owner", cascade="all, delete-orphan")
