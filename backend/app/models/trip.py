@@ -25,4 +25,9 @@ class Trip(Base):
 
     # Relationships
     owner = relationship("User", back_populates="trips")
-    # stops relationship will be added later when Stop model is created
+    stops = relationship(
+        "Stop",
+        back_populates="trip",
+        cascade="all, delete-orphan",
+        order_by="Stop.order",
+    )
