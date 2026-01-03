@@ -1,8 +1,9 @@
 from datetime import datetime
-from typing import Optional
+from typing import List, Optional
 
 from pydantic import BaseModel
 
+from app.schemas.activity import StopActivityResponse
 from app.schemas.city import CityResponse
 
 
@@ -35,6 +36,7 @@ class StopResponse(StopBase):
     order: int
     created_at: datetime
     updated_at: datetime
+    activities: List[StopActivityResponse] = []
 
     class Config:
         from_attributes = True
@@ -42,6 +44,7 @@ class StopResponse(StopBase):
 
 class StopWithCityResponse(StopResponse):
     city: CityResponse
+    activities: List[StopActivityResponse] = []
 
     class Config:
         from_attributes = True
