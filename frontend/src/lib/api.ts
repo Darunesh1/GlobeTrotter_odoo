@@ -1,78 +1,44 @@
-/**
- * Base URL of the backend API.
- *
- * This value comes from `.env.local`:
- * NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
- *
- * The `NEXT_PUBLIC_` prefix is required so Next.js
- * exposes this variable to the browser.
- */
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
+import axios from "axios";
 
-/**
- * A shared helper function for making API calls to the backend.
- *
- * - Centralizes fetch logic
- * - Ensures consistent headers
- * - Handles errors in one place
- * - Makes frontend ↔ backend integration clean
- *
- * T is a generic type representing the expected response shape.
- */
-export async function apiFetch<T>(
-  path: string,               // API endpoint path (e.g. "/auth/login")
-  options?: RequestInit       // Optional fetch configuration (method, body, headers)
-): Promise<T> {
-  /**
-   * Make the HTTP request using the Fetch API
-   */
-  const res = await fetch(`${API_BASE}${path}`, {
-    /**
-     * Include cookies in requests.
-     * Required if backend uses:
-     * - HTTP-only cookies
-     * - refresh tokens
-     * - session-based auth
-     */
-    credentials: "include",
+// Use NEXT_PUBLIC_API_BASE_URL if available, otherwise fallback to localhost:8000
+const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
 
-    /**
-     * Default headers for JSON APIs.
-     * Additional headers passed in `options` will override these.
-     */
-    headers: {
-      "Content-Type": "application/json",
-      ...(options?.headers || {}),
-    },
+const api = axios.create({
+  baseURL,
+  headers: {
+    "Content-Type": "application/json",
+  },
+  withCredentials: true, // For cookies if needed
+});
 
-    /**
-     * Spread the rest of the fetch options
-     * (method, body, etc.)
-     */
-    ...options,
-  });
-
-  /**
-   * If the response is NOT successful (status not in 200–299),
-   * throw an error so the caller can handle it (UI error message).
-   */
-  if (!res.ok) {
-    /**
-     * Try to read the error message returned by backend.
-     * This helps show meaningful messages to users.
-     */
-    const errorText = await res.text();
-
-    throw new Error(
-      errorText || "Request failed. Please try again."
-    );
+api.interceptors.request.use(
+  (config) => {
+    if (typeof window !== "undefined") {
+      const token = localStorage.getItem("token");
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
   }
+);
 
-  /**
-   * If the request succeeded, parse and return JSON response.
-   *
-   * The response is typed as `T`, so TypeScript
-   * knows what shape to expect.
-   */
-  return res.json();
-}
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    // Handle 401 Unauthorized
+    if (error.response && error.response.status === 401) {
+      if (typeof window !== "undefined") {
+        // Option 1: Try to refresh token here
+        // Option 2: Redirect to login
+        // window.location.href = '/login';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
+export default api;
