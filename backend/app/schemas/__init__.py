@@ -1,3 +1,4 @@
+from app.schemas.trip import TripBase, TripCreate, TripResponse, TripUpdate
 from app.schemas.user import (
     EmailVerification,
     ResendVerification,
@@ -20,4 +21,8 @@ __all__ = [
     "TokenData",
     "EmailVerification",
     "ResendVerification",
+    "TripBase",
+    "TripCreate",
+    "TripUpdate",
+    "TripResponse",
 ]
