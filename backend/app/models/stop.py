@@ -30,3 +30,8 @@ class Stop(Base):
     # Relationships
     trip = relationship("Trip", back_populates="stops")
     city = relationship("City")
+
+    # Add inside Stop class:
+    activities = relationship(
+        "StopActivity", back_populates="stop", cascade="all, delete-orphan"
+    )
