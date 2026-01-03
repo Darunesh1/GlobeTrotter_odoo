@@ -1,9 +1,15 @@
+import enum
 from datetime import datetime
 
-from sqlalchemy import Boolean, Column, DateTime, Integer, String
+from sqlalchemy import Boolean, Column, DateTime, Enum, Integer, String
 from sqlalchemy.orm import relationship
 
 from app.database import Base
+
+
+class UserRole(str, enum.Enum):
+    USER = "user"
+    ADMIN = "admin"
 
 
 class User(Base):
@@ -15,8 +21,9 @@ class User(Base):
     hashed_password = Column(String, nullable=False)
     full_name = Column(String, nullable=True)
     profile_picture = Column(String, nullable=True)
-    is_verified = Column(Boolean, default=False)  # NEW
-    verification_token = Column(String, nullable=True)  # NEW
+    role = Column(String, default=UserRole.USER.value)  # NEW: user or admin
+    is_verified = Column(Boolean, default=False)
+    verification_token = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
