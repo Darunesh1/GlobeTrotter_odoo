@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Float, Integer, String, Text
+from sqlalchemy.orm import relationship
 
 from app.database import Base
 
@@ -20,3 +21,5 @@ class City(Base):
     # Coordinates (optional for maps)
     latitude = Column(Float, nullable=True)
     longitude = Column(Float, nullable=True)
+
+    activities = relationship("Activity", back_populates="city")
