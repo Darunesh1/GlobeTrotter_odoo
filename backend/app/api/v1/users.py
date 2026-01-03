@@ -22,7 +22,7 @@ def get_user_profile(
 
 @router.put(
     "/profile",
-    response_model=UserResponse,
+    response_model=UserRespo˝nse,
     status_code=status.HTTP_200_OK,
 )
 def update_user_profile(
