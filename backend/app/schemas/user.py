@@ -40,6 +40,15 @@ class UserResponse(UserBase):
         from_attributes = True  # Allows SQLAlchemy model to Pydantic conversion
 
 
+# New schemas for verification
+class EmailVerification(BaseModel):
+    token: str
+
+
+class ResendVerification(BaseModel):
+    email: EmailStr
+
+
 # Schema for token response
 class Token(BaseModel):
     access_token: str
