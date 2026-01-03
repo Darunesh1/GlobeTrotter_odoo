@@ -1,4 +1,3 @@
-# app/api/v1/budget.py
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -32,6 +31,7 @@ def get_trip_budget(
 
     total_accommodation = 0.0
     total_activities = 0.0
+    total_transport = 0.0  # FIX: Initialized variable
     breakdown = []
 
     for stop in stops:
@@ -51,22 +51,32 @@ def get_trip_budget(
         act_cost = sum(a.actual_cost or 0 for a in activities)
         total_activities += act_cost
 
+        # Transport Cost
+        # Note: Ensure you have added 'transport_cost' column to your Stop model
+        trans_cost = getattr(stop, "transport_cost", 0.0) or 0.0
+        total_transport += trans_cost
+
         breakdown.append(
             {
                 "city": city.name,
                 "days": duration,
                 "accommodation": acc_cost,
+                "transport": trans_cost,
                 "activities": act_cost,
-                "subtotal": acc_cost + act_cost,
+                "subtotal": acc_cost
+                + act_cost
+                + trans_cost,  # FIX: Added transport to subtotal
             }
         )
 
     return {
-        "total_budget": total_accommodation + total_activities,
+        "total_budget": total_accommodation
+        + total_activities
+        + total_transport,  # FIX: Added transport to total
         "categories": {
             "accommodation": total_accommodation,
             "activities": total_activities,
-            "transport": 0.0,  # Placeholder (requires transport feature)
+            "transport": total_transport,  # FIX: Using calculated value
         },
         "breakdown": breakdown,
     }
