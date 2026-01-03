@@ -4,7 +4,6 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import api from "@/lib/api";
 
-// Updated User interface matching backend UserResponse
 export interface User {
   id: number;
   email: string;
@@ -20,7 +19,7 @@ export interface User {
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
-  login: (token: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   me: () => Promise<void>;
   updateProfile: (data: Partial<User>) => Promise<void>;
@@ -37,22 +36,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const { data } = await api.get("/auth/me");
       setUser(data);
-    } catch (error) {
-      console.error("Failed to fetch user", error);
+    } catch {
       setUser(null);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const updateProfile = async (data: Partial<User>) => {
+  const login = async (email: string, password: string) => {
     try {
-      const { data: updatedUser } = await api.put("/users/profile", data);
-      setUser(updatedUser);
-    } catch (error) {
-      console.error("Failed to update profile", error);
-      throw error;
+      setIsLoading(true);
+
+      const { data } = await api.post("/auth/login", {
+        email,
+        password,
+      });
+
+      localStorage.setItem("token", data.access_token);
+
+      await me();
+      router.push("/dashboard");
+    } catch (err) {
+      throw err;
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  const logout = () => {
+    localStorage.removeItem("token");
+    setUser(null);
+    router.push("/login");
+  };
+
+  const updateProfile = async (data: Partial<User>) => {
+    const res = await api.put("/users/profile", data);
+    setUser(res.data);
   };
 
   useEffect(() => {
@@ -63,18 +82,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsLoading(false);
     }
   }, []);
-
-  const login = async (token: string) => {
-    localStorage.setItem("token", token);
-    await me();
-    router.push("/dashboard");
-  };
-
-  const logout = () => {
-    localStorage.removeItem("token");
-    setUser(null);
-    router.push("/login");
-  };
 
   return (
     <AuthContext.Provider
