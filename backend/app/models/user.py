@@ -17,6 +17,3 @@ class User(Base):
     profile_picture = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-
-    # Relationships
-    trips = relationship("Trip", back_populates="owner", cascade="all, delete-orphan")
