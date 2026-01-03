@@ -13,8 +13,12 @@ class StopBase(BaseModel):
     notes: Optional[str] = None
 
 
-class StopCreate(StopBase):
-    pass
+class StopCreate(BaseModel):
+    city_id: int
+    start_date: datetime
+    end_date: datetime
+    notes: Optional[str] = None
+    transport_cost: Optional[float] = 0.0
 
 
 class StopUpdate(BaseModel):
