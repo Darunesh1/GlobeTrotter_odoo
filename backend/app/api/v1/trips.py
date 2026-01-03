@@ -1,3 +1,4 @@
+import secrets
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -151,4 +152,34 @@ def get_shared_trip(share_token: str, db: Session = Depends(get_db)):
             detail="This trip is currently private",
         )
 
+    return trip
+
+
+@router.put("/{trip_id}/share", response_model=TripResponse)
+def toggle_trip_sharing(
+    trip_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    """Toggle trip public status and generate token if needed"""
+    trip = (
+        db.query(Trip)
+        .filter(Trip.id == trip_id, Trip.user_id == current_user.id)
+        .first()
+    )
+
+    if not trip:
+        raise HTTPException(status_code=404, detail="Trip not found")
+
+    # Toggle status
+    if trip.is_public:
+        trip.is_public = False  # Turn off
+    else:
+        trip.is_public = True  # Turn on
+        if not trip.share_token:
+            # Generate a secure random token
+            trip.share_token = secrets.token_urlsafe(16)
+
+    db.commit()
+    db.refresh(trip)
     return trip
