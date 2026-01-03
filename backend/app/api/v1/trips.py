@@ -129,3 +129,26 @@ def delete_trip(
     db.commit()
 
     return None
+
+
+@router.get("/share/{share_token}", response_model=TripResponse)
+def get_shared_trip(share_token: str, db: Session = Depends(get_db)):
+    """
+    Get a trip by its public share token.
+    Does NOT require authentication.
+    """
+    trip = db.query(Trip).filter(Trip.share_token == share_token).first()
+
+    if not trip:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Trip not found or invalid token",
+        )
+
+    if not trip.is_public:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="This trip is currently private",
+        )
+
+    return trip
