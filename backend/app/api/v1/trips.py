@@ -6,6 +6,8 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_active_user
 from app.database import get_db
+from app.models.activity import StopActivity
+from app.models.stop import Stop
 from app.models.trip import Trip
 from app.models.user import User
 from app.schemas.trip import TripCreate, TripResponse, TripUpdate
@@ -183,3 +185,66 @@ def toggle_trip_sharing(
     db.commit()
     db.refresh(trip)
     return trip
+
+
+@router.post(
+    "/{trip_id}/copy", response_model=TripResponse, status_code=status.HTTP_201_CREATED
+)
+def copy_trip(
+    trip_id: int,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db),
+):
+    """Clone an existing public trip to the current user's account"""
+    # 1. Fetch original trip (must be public OR owned by user)
+    original_trip = db.query(Trip).filter(Trip.id == trip_id).first()
+    if not original_trip:
+        raise HTTPException(status_code=404, detail="Trip not found")
+
+    if not original_trip.is_public and original_trip.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Cannot copy private trip")
+
+    # 2. Create new Trip shell
+    new_trip = Trip(
+        name=f"Copy of {original_trip.name}",
+        description=original_trip.description,
+        start_date=original_trip.start_date,  # User usually updates this later
+        end_date=original_trip.end_date,
+        cover_photo=original_trip.cover_photo,
+        user_id=current_user.id,
+        is_public=False,  # New copy starts private
+    )
+    db.add(new_trip)
+    db.commit()
+    db.refresh(new_trip)
+
+    # 3. Clone Stops
+    original_stops = db.query(Stop).filter(Stop.trip_id == original_trip.id).all()
+
+    for old_stop in original_stops:
+        new_stop = Stop(
+            trip_id=new_trip.id,
+            city_id=old_stop.city_id,
+            start_date=old_stop.start_date,
+            end_date=old_stop.end_date,
+            notes=old_stop.notes,
+            order=old_stop.order,
+            transport_cost=old_stop.transport_cost,  # New field (see below)
+        )
+        db.add(new_stop)
+        db.commit()  # Commit to get new_stop.id
+
+        # 4. Clone Activities for this stop
+        old_activities = (
+            db.query(StopActivity).filter(StopActivity.stop_id == old_stop.id).all()
+        )
+        for old_act in old_activities:
+            new_act = StopActivity(
+                stop_id=new_stop.id,
+                activity_id=old_act.activity_id,
+                actual_cost=old_act.actual_cost,
+            )
+            db.add(new_act)
+
+    db.commit()
+    return new_trip
